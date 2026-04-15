@@ -127,7 +127,7 @@ INSERT INTO warehouse (warehouse_name, address) VALUES
 INSERT INTO products (category_id, product_name, product_description, product_price) VALUES 
 (1, 'Дизельне паливо', 'Дизельне паливо для вашого тостеру', 100.00),
 (2, 'Колода', 'Колода для обігріву холодильника', 200.50),
-(3, 'Золотий відкивач', 'Бюджетний рулет, ідеальний для розрізання лінійкою під час шкільного свята', 49.99);
+(3, 'Золотий рулет', 'Бюджетний рулет, ідеальний для розрізання лінійкою під час шкільного свята', 49.99);
 
 INSERT INTO orders (client_id, employee_id, total_price) VALUES 
 (1, 1, 1500.00),
