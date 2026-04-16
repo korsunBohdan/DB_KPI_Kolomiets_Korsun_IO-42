@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model categories {
+  category_id   Int        @id @default(autoincrement())
+  category_name String     @unique @db.VarChar(40)
+  products      products[]
+}
+
+model clients {
+  client_id    Int      @id @default(autoincrement())
+  first_name   String   @db.VarChar(30)
+  last_name    String   @db.VarChar(30)
+  client_phone String   @unique @db.Char(12)
+  client_email String   @unique @db.Char(64)
+  orders       orders[]
+}
+
+model employee {
+  employee_id       Int              @id @default(autoincrement())
+  first_name        String           @db.VarChar(30)
+  last_name         String           @db.VarChar(50)
+  employee_position String           @db.VarChar(64)
+  employee_phone    String           @unique @db.Char(12)
+  employee_email    String           @unique @db.Char(64)
+  orders            orders[]
+  supply_deliver    supply_deliver[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model order_items {
+  order_item_id Int      @id @default(autoincrement())
+  order_id      Int
+  product_id    Int
+  quantity      Int      @default(0)
+  sale_price    Decimal  @db.Decimal(10, 2)
+  orders        orders   @relation(fields: [order_id], references: [order_id], onDelete: NoAction, onUpdate: NoAction)
+  products      products @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([order_id, product_id], map: "unique_order_product")
+}
+
+model orders {
+  order_id    Int           @id @default(autoincrement())
+  client_id   Int
+  employee_id Int
+  created_at  DateTime      @default(now()) @db.Timestamp(6)
+  order_items order_items[]
+  clients     clients       @relation(fields: [client_id], references: [client_id], onDelete: NoAction, onUpdate: NoAction)
+  employee    employee      @relation(fields: [employee_id], references: [employee_id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model products {
+  product_id          Int              @id @default(autoincrement())
+  category_id         Int
+  product_name        String           @db.VarChar(60)
+  product_description String?
+  product_price       Decimal          @default(0.00) @db.Decimal(10, 2)
+  order_items         order_items[]
+  categories          categories       @relation(fields: [category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction)
+  stock_balances      stock_balances[]
+  supply_items        supply_items[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model stock_balances {
+  stock_id     Int       @id @default(autoincrement())
+  warehouse_id Int
+  product_id   Int
+  last_update  DateTime  @default(dbgenerated("CURRENT_DATE")) @db.Date
+  quantity     Int       @default(0)
+  products     products  @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse    warehouse @relation(fields: [warehouse_id], references: [warehouse_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([warehouse_id, product_id], map: "unique_warehouse_product")
+}
+
+model supplier {
+  supplier_id    Int              @id @default(autoincrement())
+  company_name   String           @unique @db.VarChar(40)
+  contact_person String           @db.VarChar(80)
+  contact_phone  String           @db.Char(12)
+  supply_deliver supply_deliver[]
+}
+
+model supply_deliver {
+  supply_delivery_id Int            @id @default(autoincrement())
+  supplier_id        Int
+  employee_id        Int
+  warehouse_id       Int
+  delivery_date      DateTime       @default(now()) @db.Timestamp(6)
+  employee           employee       @relation(fields: [employee_id], references: [employee_id], onDelete: NoAction, onUpdate: NoAction)
+  supplier           supplier       @relation(fields: [supplier_id], references: [supplier_id], onDelete: NoAction, onUpdate: NoAction)
+  warehouse          warehouse      @relation(fields: [warehouse_id], references: [warehouse_id], onDelete: NoAction, onUpdate: NoAction)
+  supply_items       supply_items[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model supply_items {
+  supply_item_id     Int            @id @default(autoincrement())
+  supply_delivery_id Int
+  product_id         Int
+  purchase_price     Decimal        @db.Decimal(10, 2)
+  quantity           Int            @default(0)
+  products           products       @relation(fields: [product_id], references: [product_id], onDelete: NoAction, onUpdate: NoAction)
+  supply_deliver     supply_deliver @relation(fields: [supply_delivery_id], references: [supply_delivery_id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([supply_delivery_id, product_id], map: "unique_supply_product")
+}
+
+model warehouse {
+  warehouse_id   Int              @id @default(autoincrement())
+  warehouse_name String           @db.VarChar(25)
+  city           String           @db.VarChar(30)
+  street_address String           @db.VarChar(50)
+  stock_balances stock_balances[]
+  supply_deliver supply_deliver[]
+}
